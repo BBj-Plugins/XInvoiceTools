@@ -1,0 +1,534 @@
+REM This is the transcribed BBj implementation of the MustangWriter Sample from the MustangProject
+REM see https://www.mustangproject.org/ 
+REM and http://github.com/zuGFeRD/mustangproject
+REM 
+REM You need at least the following files in your classpath to run it:
+REM mustang-1.5.1.jar
+REM jaxb-api-2.3.0.jar
+REM activation-1.1.1.jar 
+
+use java.io.IOException
+use java.math.BigDecimal
+use java.util.Calendar
+use java.util.Date
+use java.util.GregorianCalendar
+use java.lang.reflect.Array
+
+use org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge
+use org.mustangproject.ZUGFeRD.IZUGFeRDExportableContact
+use org.mustangproject.ZUGFeRD.IZUGFeRDExportableItem
+use org.mustangproject.ZUGFeRD.IZUGFeRDExportableProduct
+use org.mustangproject.ZUGFeRD.IZUGFeRDExportableTransaction
+use org.mustangproject.ZUGFeRD.ZUGFeRDExporter
+use org.mustangproject.ZUGFeRD.ZUGFeRDExporterFromA1Factory
+
+class public Contact implements IZUGFeRDExportableContact 
+
+    field private String country!
+    field private String location!
+    field private String name!
+    field private String street!
+    field private String vatID!
+    field private String zip!
+
+    method public String getCountry() 
+        methodret #country!
+    methodend
+    
+    method public void setCountry(String country!)
+        #country! = country!
+    methodend
+
+    method public String getLocation() 
+        methodret #location!
+    methodend
+    
+    method public void setLocation(String location!)
+        #location! = location!
+    methodend
+
+    method public String getName() 
+        methodret #name!
+    methodend
+    
+    method public void setName(String name!)
+        #name! = name!
+    methodend
+
+    method public String getStreet() 
+        methodret #street!
+    methodend
+    
+    method public void setStreet(String street!)
+        #street! = street!
+    methodend
+
+    method public String getVATID() 
+        methodret #vatID!
+    methodend
+    
+    method public void setVATID(String vatID!)
+        #vatID! = vatID!
+    methodend
+
+    method public String getZIP() 
+        methodret #zip!
+    methodend
+    
+    method public void setZIP(String zip!)
+        #zip! = zip!
+    methodend
+classend
+
+
+class public Item implements IZUGFeRDExportableItem 
+
+    field private BigDecimal price!
+    field private BigDecimal quantity!
+    field private Product product!
+    field private IZUGFeRDAllowanceCharge[] itemAllowances!
+    field private IZUGFeRDAllowanceCharge[] itemCharges!
+
+    method public Item(BigDecimal price!, BigDecimal quantity!, Product product!) 
+        #price! = price!
+        #quantity! = quantity!
+        #product! = product!
+    methodend
+    
+    method public Item(BigDecimal price!, BigDecimal quantity!, Product product!, IZUGFeRDAllowanceCharge[] itemAllowances!, IZUGFeRDAllowanceCharge[] itemCharges!) 
+        #price! = price!
+        #quantity! = quantity!
+        #product! = product!
+        #itemAllowances! = itemAllowances!
+        #itemCharges! = itemCharges!
+    methodend
+
+    method public BigDecimal getPrice() 
+        methodret #price!
+    methodend
+
+    method public void setPrice(BigDecimal price!) 
+        #price! = price!
+    methodend
+
+    method public BigDecimal getQuantity() 
+        methodret #quantity!
+    methodend
+
+    method public void setQuantity(BigDecimal quantity!) 
+        #quantity! = quantity!
+    methodend
+
+    method public IZUGFeRDExportableProduct getProduct() 
+        methodret #product!
+    methodend
+
+    method public void setProduct(Product product!) 
+        #product! = product!
+    methodend
+
+    method public IZUGFeRDAllowanceCharge[] getItemAllowances() 
+        methodret #itemAllowances!
+    methodend
+    
+    method public void setItemAllowances(IZUGFeRDAllowanceCharge[] itemAllowances!)
+        #itemAllowances! = itemAllowances!
+    methodend
+
+    method public IZUGFeRDAllowanceCharge[] getItemCharges() 
+        methodret #itemCharges!
+    methodend
+
+    method public void setItemCharges(IZUGFeRDAllowanceCharge[] itemCharges!)
+        #itemCharges! = itemCharges!
+    methodend
+
+classend
+
+class public Product implements IZUGFeRDExportableProduct
+
+    field private String description!
+    field private String name!
+    field private String unit!
+    field private BigDecimal VATPercent!
+
+    method public Product(String description!, String name!, String unit!, BigDecimal vATPercent!) 
+        #description! = description!
+        #name! = name!
+        #unit! = unit!
+        #VATPercent! = vATPercent!
+    methodend
+
+    method public String getDescription() 
+        methodret #description!
+    methodend
+
+    method public void setDescription(String description!) 
+        #description! = description!
+    methodend
+
+    method public String getName() 
+        methodret #name!
+    methodend
+
+    method public void setName(String name!) 
+        #name! = name!
+    methodend
+
+    method public String getUnit() 
+        methodret #unit!
+    methodend
+
+    method public void setUnit(String unit!) 
+        #unit! = unit!
+    methodend
+
+    method public BigDecimal getVATPercent() 
+        methodret #VATPercent!
+    methodend
+
+    method public void setVATPercent(BigDecimal vATPercent!) 
+        VATPercent! = vATPercent!
+    methodend
+
+classend
+
+class public MustangWriter implements IZUGFeRDExportableTransaction 
+
+    field private String currency!
+    field private Date deliveryDate!
+    field private Date dueDate!
+    field private Date issueDate!
+    field private String number!
+    field private String ownBIC!
+    field private String ownBankName!
+    field private String ownCountry!
+    field private String ownIBAN!
+    field private String ownLocation!
+    field private String ownOrganisationFullPlaintextInfo!
+    field private String ownOrganisationName!
+    field private String ownPaymentInfoText!
+    field private String ownStreet!
+    field private String ownTaxID!
+    field private String ownVATID!
+    field private String ownZIP!
+    field private String paymentTermDescription!
+    field private IZUGFeRDExportableContact contact!
+    field private String referenceNumber!
+    field private IZUGFeRDExportableItem[] zfItems!
+    field private IZUGFeRDAllowanceCharge[] zfLogisticsServiceCharges!
+    field private IZUGFeRDAllowanceCharge[] zfCharges!
+    field private IZUGFeRDAllowanceCharge[] zfAllowances!
+
+    method public String getCurrency() 
+        methodret #currency!
+    methodend
+    
+    method public String setCurrency(String currency!)
+        #currency! = currency!
+    methodend
+
+    method public Date getDeliveryDate() 
+        methodret #deliveryDate!
+    methodend
+    
+    method public void setDeliveryDate(Date date!)
+        #deliveryDate! = date!
+    methodend
+
+    method public Date getDueDate() 
+        methodret #dueDate!
+    methodend
+    
+    method public void setDueDate(Date date!)
+        #dueDate! = date!
+    methodend
+
+    method public Date getIssueDate() 
+        methodret #issueDate!
+    methodend
+    
+    method public void setIssueDate(Date date!)
+        #issueDate! = date!
+    methodend
+
+    method public String getNumber() 
+        methodret #number!
+    methodend
+    
+    method public void setNumber(String number!)
+        #number! = number!
+    methodend
+
+    method public String getOwnBIC() 
+        methodret #ownBIC!
+    methodend
+    
+    method public void setOwnBIC(String ownBIC!)
+        #ownBIC! = ownBIC!
+    methodend
+
+    method public String getOwnBankName() 
+        methodret #ownBankName!
+    methodend
+    
+    method public void setOwnBankName(String ownBankName!)
+        #ownBankName! = ownBankName!
+    methodend
+
+    method public String getOwnCountry() 
+        methodret #ownCountry!
+    methodend
+    
+    method public void setOwnCountry(String ownCountry!)
+        #ownCountry! = ownCountry!
+    methodend
+
+    method public String getOwnIBAN() 
+        methodret #ownIBAN!
+    methodend
+    
+    method public void setOwnIBAN(String ownIBAN!)
+        #ownIBAN! = ownIBAN!
+    methodend
+
+    method public String getOwnLocation() 
+        methodret #ownLocation!
+    methodend
+    
+    method public void setOwnLocation(String ownLocation!)
+        #ownLocation! = ownLocation!
+    methodend
+
+    method public String getOwnOrganisationFullPlaintextInfo() 
+        methodret #ownOrganisationFullPlaintextInfo!
+    methodend
+    
+    method public void setOwnOrganisationFullPlaintextInfo(String info!)
+        #ownOrganisationFullPlaintextInfo! = info!
+    methodend
+
+    method public String getOwnOrganisationName() 
+        methodret #ownOrganisationName!
+    methodend
+    
+    method public void setOwnOrganisationName(String name!)
+        #ownOrganisationName! = name!
+    methodend
+
+    method public String getOwnPaymentInfoText() 
+        methodret #ownPaymentInfoText!
+    methodend
+    
+    method public void setOwnPaymentInfoText(String ownPaymentInfoText!)
+        #ownPaymentInfoText! = ownPaymentInfoText!
+    methodend
+
+    method public String getOwnStreet() 
+        methodret #ownStreet!
+    methodend
+    
+    method public void setOwnStreet(String ownStreet!)
+        #ownStreet! = ownStreet!
+    methodend
+
+    method public String getOwnTaxID() 
+        methodret #ownTaxID!
+    methodend
+    
+    method public void setOwnTaxID(String ownTaxID!)
+        #ownTaxID! = ownTaxID!
+    methodend
+
+    method public String getOwnVATID() 
+        methodret #ownVATID!
+    methodend
+    
+    method public void setOwnVATID(String ownVATID!)
+        #ownVATID! = ownVATID!
+    methodend
+
+    method public String getOwnZIP() 
+        methodret #ownZIP!
+    methodend
+    
+    method public void setOwnZIP(String ownZIP!)
+        #ownZIP! = ownZIP!
+    methodend
+
+    method public String getPaymentTermDescription() 
+        methodret #paymentTermDescription!
+    methodend
+    
+    method public void setPaymentTermDescription(String paymentTermDescription!)
+        #paymentTermDescription! = paymentTermDescription!
+    methodend
+    
+    method public IZUGFeRDExportableContact getRecipient() 
+        methodret #contact!
+    methodend
+    
+    method public void setRecipient(IZUGFeRDExportableContact contact!)
+        #contact! = contact!
+    methodend
+
+    method public String getReferenceNumber() 
+        methodret #referenceNumber!
+    methodend
+    
+    method public void setReferenceNumber(String referenceNumber!)
+        #referenceNumber! = referenceNumber!
+    methodend
+
+    method public IZUGFeRDAllowanceCharge[] getZFAllowances() 
+        methodret #zfAllowances!
+    methodend
+    
+    method public void setZFAllowances(IZUGFeRDAllowanceCharge[] zfAllowances!)
+        #zfAllowances! = zfAllowances!
+    methodend
+
+    method public IZUGFeRDAllowanceCharge[] getZFCharges() 
+        methodret #zfCharges!
+    methodend
+    
+    method public void setZFCharges(IZUGFeRDAllowanceCharge[] zfCharges!)
+        #zfCharges! = zfCharges!
+    methodend
+
+    method public IZUGFeRDExportableItem[] getZFItems() 
+        methodret #zfItems!
+    methodend
+    
+    method public void setZFItems(IZUGFeRDExportableItem[] zfItems!)
+        #zfItems! = zfItems!
+    methodend
+
+    method public IZUGFeRDAllowanceCharge[] getZFLogisticsServiceCharges() 
+        methodret #zfLogisticsServiceCharges!
+    methodend
+    
+    method public void setZFLogisticsServiceCharges(IZUGFeRDAllowanceCharge[] zfLogisticsServiceCharges!)
+        #zfLogisticsServiceCharges! = zfLogisticsServiceCharges!
+    methodend
+    
+classend
+
+class public ZUGFeRDAllowanceCharge implements IZUGFeRDAllowanceCharge
+    
+    field private BigDecimal totalAmount!
+    field private String reason!
+    field private BigDecimal taxPercent!
+    
+    method public ZUGFeRDAllowanceCharge(BigDecimal totalAmount!, String reason!, BigDecimal taxPercent!)
+        #totalAmount! = totalAmount!
+        #reason! = reason!
+        #taxPercent! = taxPercent!
+    methodend
+    
+    method public BigDecimal getTotalAmount()
+        methodret #totalAmount!
+    methodend
+    
+    method public void setTotalAmount(BigDecimal totalAmount!)
+        #totalAmount! = totalAmount!
+    methodend
+    
+    method public String getReason()
+        methodret #reason!
+    methodend
+    
+    method public void setReason(String reason!)
+        #reason! = reason!
+    methodend
+    
+    method public BigDecimal getTaxPercent()
+        methodret #taxPercent!
+    methodend
+    
+    method public void setTaxPercent(BigDecimal taxPercent!)
+        #taxPercent! = taxPercent!
+    methodend
+
+classend
+
+Class.forName("org.mustangproject.ZUGFeRD.ZUGFeRDExporter",err=classpath_err)
+
+pdf$ = BBjAPI().getFileSystem().resolvePath("XInvoiceTools/zugferd/MustangGnuaccountingBeispielRE-20170509_505blanko.pdf")
+pdf_out$ = pdf$(1,len(pdf$)-10)+"out.pdf"
+
+mwr! = new MustangWriter()
+contact! = new Contact()
+contact!.setCountry("DE")
+contact!.setLocation("Spielkreis")
+contact!.setName("Theodor Est")
+contact!.setStreet("Bahnstr. 42")
+contact!.setVATID("DE999999999")
+contact!.setZIP("88802")
+mwr!.setRecipient(contact!)
+mwr!.setDeliveryDate(new GregorianCalendar(2017, Calendar.NOVEMBER, 17).getTime())
+mwr!.setDueDate(new GregorianCalendar(2017, Calendar.DECEMBER, 9).getTime())
+mwr!.setIssueDate(new GregorianCalendar(2017, Calendar.NOVEMBER, 18).getTime())
+mwr!.setNumber("RE-20171118/506")
+mwr!.setOwnBIC("COBADEFFXXX")
+mwr!.setOwnBankName("Commerzbank")
+mwr!.setOwnCountry("DE")
+mwr!.setOwnIBAN("DE88 2008 0000 0970 3757 00")
+mwr!.setOwnLocation("Stadthausen")
+mwr!.setOwnOrganisationFullPlaintextInfo("Bei Spiel GmbH\n" + "Ecke 12\n" + "12345 Stadthausen\n" + "Geschäftsführer: Max Mustermann")
+mwr!.setOwnOrganisationName("Bei Spiel GmbH")
+mwr!.setOwnPaymentInfoText("/")
+mwr!.setOwnStreet("Ecke 12")
+mwr!.setOwnTaxID("22/815/0815/4")
+mwr!.setOwnVATID("DE136695976")
+mwr!.setOwnZIP("12345")
+mwr!.setPaymentTermDescription("/")
+mwr!.setReferenceNumber("000000")
+
+
+allItems! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDExportableItem"),3) 
+
+designProduct! = new Product("", "Künstlerische Gestaltung (Stunde): Einer Beispielrechnung", "HUR",new BigDecimal("7.000000"))
+balloonProduct! = new Product("", "Luftballon: Bunt, ca. 500ml", "C62", new BigDecimal("19.000000"))
+airProduct! = new Product("", "Heiße Luft pro Liter", "LTR", new BigDecimal("19.000000"))
+
+itemAllowances! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
+itemAllowances![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("1"), "ItemAllowance Reason", new BigDecimal("0"))
+
+itemCharges! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
+itemCharges![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("1"), "ItemChargeReason", new BigDecimal("0"))
+
+allItems![0] = new Item(new BigDecimal("160"), new BigDecimal("1"), designProduct!, itemAllowances!, itemCharges!)
+allItems![1] = new Item(new BigDecimal("0.79"), new BigDecimal("400"), balloonProduct!, itemAllowances!, itemCharges!)
+allItems![2] = new Item(new BigDecimal("0.10"), new BigDecimal("200"), airProduct!, itemAllowances!, itemCharges!)
+mwr!.setZFItems(allItems!)
+
+zfLogisticsServiceCharges! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
+zfLogisticsServiceCharges![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("5"), "Versand", new BigDecimal("0"))
+mwr!.setZFLogisticsServiceCharges(zfLogisticsServiceCharges!)
+
+zfCharges! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
+zfCharges![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("1"), "zfCharges Reason", new BigDecimal("0"))
+mwr!.setZFCharges(zfCharges!)
+
+zfAllowances! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
+zfAllowances![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("2"), "zfAllowances Reason", new BigDecimal("0"))
+mwr!.setZFAllowances(zfAllowances!)
+
+
+ze! = new ZUGFeRDExporterFromA1Factory().setProducer("BASIS BBj")
+:                    .setCreator(System.getProperty("user.name"))
+:                    .load(pdf$)
+
+ze!.PDFattachZugferdFile(mwr!)
+ze!.export(pdf_out$)
+
+rem show the PDF (this only works on local machines - who wants to make this ThinClient-proof?)
+java.awt.Desktop.getDesktop().open(new java.io.File(pdf_out$))
+        
+release
+
+classpath_err:
+    PRINT "Add the mustang...jar to your classpath!"
+    input *
+release
