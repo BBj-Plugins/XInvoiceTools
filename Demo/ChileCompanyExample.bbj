@@ -1,0 +1,159 @@
+use ::BusinessUIComponents/ExampleBCs/ChileCustomerBC.bbj::ChileCustomerBC
+use ::BusinessUIComponents/ExampleBCs/ChileCustomerTableBC.bbj::ChileCustomerTableBC
+
+use ::XInvoiceTools/zugferd/MustangXWriter.bbj::MustangXWriter
+use ::XInvoiceTools/zugferd/MustangXWriter.bbj::Contact
+use ::XInvoiceTools/zugferd/MustangXWriter.bbj::Item
+use ::XInvoiceTools/zugferd/MustangXWriter.bbj::Product
+use ::XInvoiceTools/zugferd/MustangXWriter.bbj::ZUGFeRDAllowanceCharge
+use org.mustangproject.ZUGFeRD.ZUGFeRDExporterFromA1Factory
+
+use com.basiscomponents.db.DataRow
+use com.basiscomponents.db.ResultSet
+use com.basiscomponents.bc.util.SqlConnectionHelper
+
+use java.io.IOException
+use java.math.BigDecimal
+use java.sql.Connection
+use java.sql.DriverManager
+use java.sql.SQLException
+use java.text.SimpleDateFormat
+use java.util.Calendar
+use java.util.Date
+use java.util.GregorianCalendar
+use java.lang.reflect.Array
+
+Class.forName("org.mustangproject.ZUGFeRD.ZUGFeRDExporter",err=classpath_err)
+
+pdf$ = BBjAPI().getFileSystem().resolvePath("XInvoiceTools/zugferd/MustangGnuaccountingBeispielRE-20170509_505blanko.pdf")
+pdf_out$ = pdf$(1,len(pdf$)-10)+"out.pdf"
+
+connHelper! = new SqlConnectionHelper("jdbc:basis:localhost?database=ChileCompany&user=admin&password=admin123")
+conw! = connHelper!.getConnection()
+conn! = conw!.getCloseable()
+
+query! = "SELECT * FROM INVOICE WHERE INVOICE_NUM=1065795"
+stmt! = conn!.prepareStatement(query!)
+rs! = new ResultSet(stmt!.executeQuery())
+invoiceDR! = rs!.get(0)
+
+query! = "SELECT * FROM ORDER_HEADER WHERE ORDER_NUM=3120543"
+stmt! = conn!.prepareStatement(query!)
+rs! = new ResultSet(stmt!.executeQuery())
+orderHeaderDR! = rs!.get(0)
+
+chileCustomerBC! = new ChileCustomerBC()
+filter! = new DataRow()
+filter!.setFieldValue("CUST_NUM", invoiceDR!.getFieldAsString("CUST_NUM"))
+chileCustomerBC!.setFilter(filter!)
+rs! = chileCustomerBC!.retrieve()
+customerDR! = rs!.get(0)
+
+contact! = new Contact()
+country$ = cvs(customerDR!.getFieldAsString("COUNTRY"),3)
+contact!.setCountry(country$)
+
+company$ = cvs(customerDR!.getFieldAsString("COMPANY"),3)
+contact!.setLocation(company$)
+
+name$ = cvs(customerDR!.getFieldAsString("FIRST_NAME"),3) + " " + cvs(customerDR!.getFieldAsString("LAST_NAME"),3)
+contact!.setName(name$)
+
+street$ = cvs(customerDR!.getFieldAsString("BILL_ADDR1"),3)
+contact!.setStreet(street$)
+
+contact!.setVATID("US999999999") ; rem not in DB
+contact!.setZIP("2476") ; rem not in DB
+
+mwr! = new MustangXWriter()
+mwr!.setRecipient(contact!)
+
+issueDate$ = invoiceDR!.getFieldAsString("INVOICE_DATE")
+simpleDateFormat! = new SimpleDateFormat("yyyy-MM-dd")
+invoiceDate! = simpleDateFormat!.parse(issueDate$)
+
+mwr!.setDeliveryDate(new GregorianCalendar(2017, Calendar.NOVEMBER, 17).getTime()) ; rem not in DB
+mwr!.setDueDate(new GregorianCalendar(2017, Calendar.DECEMBER, 9).getTime()) ; rem not in DB
+mwr!.setIssueDate(invoiceDate!)
+number! = cvs(invoiceDR!.getFieldAsString("INVOICE_NUM"),3)
+mwr!.setNumber(number!)
+mwr!.setOwnBIC("COBADEFFXXX")
+mwr!.setOwnBankName("Commerzbank")
+mwr!.setOwnCountry("DE")
+mwr!.setOwnIBAN("DE88 2008 0000 0970 3757 00")
+mwr!.setOwnLocation("Stadthausen")
+mwr!.setOwnOrganisationFullPlaintextInfo("Bei Spiel GmbH\n" + "Ecke 12\n" + "12345 Stadthausen\n" + "Geschäftsführer: Max Mustermann")
+mwr!.setOwnOrganisationName("Bei Spiel GmbH")
+mwr!.setOwnPaymentInfoText("/")
+mwr!.setOwnStreet("Ecke 12")
+mwr!.setOwnTaxID("22/815/0815/4")
+mwr!.setOwnVATID("DE136695976")
+mwr!.setOwnZIP("12345")
+mwr!.setPaymentTermDescription("/")
+referenceNumber! = cvs(invoiceDR!.getFieldAsString("ORDER_NUM"),3)
+mwr!.setReferenceNumber(referenceNumber!)
+
+allItems! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDExportableItem"),3) 
+
+query! = "SELECT * FROM ORDER_LINE WHERE ORDER_NUM=3120543"
+stmt! = conn!.prepareStatement(query!)
+orderLineRS! = new ResultSet(stmt!.executeQuery())
+orderLineDR! = orderLineRS!.get(0)
+
+for i = 0 to orderLineRS!.size() - 1
+    orderLineDR! = orderLineRS!.get(i)
+    
+    query! = "SELECT * FROM ITEM WHERE ITEM_NUM='" + orderLineDR!.getFieldAsString("ITEM_NUM") + "'"
+    stmt! = conn!.prepareStatement(query!)
+    rs! = new ResultSet(stmt!.executeQuery())
+    itemDR! = rs!.get(0)
+
+    desc! = itemDR!.getFieldAsString("DESCRIPTION")
+    name! = itemDR!.getFieldAsString("DESCRIPTION") ; rem same thing in DB as DESC
+    unit! = "HUR" ; rem not in DB
+    vatPercent! = new BigDecimal("19") ; rem not in DB
+
+    product! = new Product(desc!, name!, unit!, vatPercent!)
+    
+    itemAllowances! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
+    itemAllowances![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("1"), "ItemAllowance Reason", new BigDecimal("0"))
+    
+    itemCharges! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
+    itemCharges![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("1"), "ItemChargeReason", new BigDecimal("0"))
+    
+    orderedQuantity! = orderLineDR!.getFieldAsString("QTY_ORDERED")
+    price! = orderLineDR!.getFieldAsString("PRICE")
+    
+    allItems![i] = new Item(new BigDecimal(price!), new BigDecimal(orderedQuantity!), product!, itemAllowances!, itemCharges!)
+next i
+
+mwr!.setZFItems(allItems!)
+
+zfLogisticsServiceCharges! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
+zfLogisticsServiceCharges![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("5"), "Versand", new BigDecimal("0"))
+mwr!.setZFLogisticsServiceCharges(zfLogisticsServiceCharges!)
+
+zfCharges! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
+zfCharges![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("1"), "zfCharges Reason", new BigDecimal("0"))
+mwr!.setZFCharges(zfCharges!)
+
+zfAllowances! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
+zfAllowances![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("2"), "zfAllowances Reason", new BigDecimal("0"))
+mwr!.setZFAllowances(zfAllowances!)
+
+ze! = new ZUGFeRDExporterFromA1Factory().setProducer("BASIS BBj")
+:                    .setCreator(System.getProperty("user.name"))
+:                    .load(pdf$)
+
+ze!.PDFattachZugferdFile(mwr!)
+ze!.export(pdf_out$)
+
+rem show the PDF (this only works on local machines - who wants to make this ThinClient-proof?)
+java.awt.Desktop.getDesktop().open(new java.io.File(pdf_out$))
+        
+release
+
+classpath_err:
+    PRINT "Add the mustang...jar to your classpath!"
+    input *
+release

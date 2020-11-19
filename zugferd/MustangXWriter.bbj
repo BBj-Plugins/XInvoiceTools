@@ -193,7 +193,7 @@ class public Product implements IZUGFeRDExportableProduct
 
 classend
 
-class public MustangWriter implements IZUGFeRDExportableTransaction 
+class public MustangXWriter implements IZUGFeRDExportableTransaction 
 
     field private String currency!
     field private Date deliveryDate!
@@ -457,7 +457,7 @@ Class.forName("org.mustangproject.ZUGFeRD.ZUGFeRDExporter",err=classpath_err)
 pdf$ = BBjAPI().getFileSystem().resolvePath("XInvoiceTools/zugferd/MustangGnuaccountingBeispielRE-20170509_505blanko.pdf")
 pdf_out$ = pdf$(1,len(pdf$)-10)+"out.pdf"
 
-mwr! = new MustangWriter()
+mwr! = new MustangXWriter()
 contact! = new Contact()
 contact!.setCountry("DE")
 contact!.setLocation("Spielkreis")
