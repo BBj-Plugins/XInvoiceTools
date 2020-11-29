@@ -45,6 +45,22 @@ These two produce PDF which are almost okay, but miss a few metadata / header fi
 
 We have successfully tested the PDFA - class on output from the Unform product. It appears to work nicely and adds all necessary meta data, also for older versions. If somebody has Unform output which does not fully validate, open an issue and attach the PDF file (or send it offline if it contains sensitive data).
 
+## Troubleshooting Fonts 
+
+In case you're seeing validation problems, where the validator is nagging about a font (often Helvetica) not being embedded correctly, it's likely that the font you actually wanted to see in the PDF could not be found at creation time.
+
+For BBj make sure to set the PDF Font Directory to the directory where you gave your fonts installed. Make sure to put all the .otf font files needed for generation in this directory.
+
+
+For Linux, you can use some online TTF-to-OTF Converter, in case you're using Windows-Fonts like Arial.ttf in your printouts.
+
+
+See https://documentation.basis.com/BASISHelp/WebHelp/sysguicontmethods/bbjapi/bbjapi_getbbjpdfform.htm.
+
+
+Also make sure to recognize https://www.basis.com/content/kb-removal-fonts-jdk-11 for the removal of Fonts in OpenJDK 11.
+
+
 # Validating PDF/A
 
 The "validation" subdirectory contains a validator "PDFBox_PDFA_Validation.bbj" that iterates all PDFs in the "output" directory and creates a print preview listing the results. This validator is using the PDFBox library that ships with BBj.
