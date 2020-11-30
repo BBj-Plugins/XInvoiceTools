@@ -105,4 +105,15 @@ REM TODO: we could create a generic class with generic setters for all of the fi
 
 (The mustangproject.org library allows adding own XML. Sample needed.)
 
+## The German "Leitweg ID"
+
+German official authorities issue a so called Leitweg ID that has to be transmitted in the Buyer Reference field. 
+
+The sources below seem to recommend that you will need a 46-character long field in the order header to store the Leitweg ID with the order - it looks like there might be different Leitweg IDs possible for the same buyer.
+
+Sources:
+
+https://www.e-rechnung-bund.de/faq-e-rechnung/faq-leitweg-id/
+
+https://ecosio.com/de/blog/was-ist-eine-leitweg-id/#:~:text=Durch%20die%20eindeutige%20Adressierung%20mittels,Verwaltungseinheiten%20und%20den%20darin%20aufgebauten
 
