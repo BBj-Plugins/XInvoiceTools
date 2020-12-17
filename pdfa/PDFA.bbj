@@ -141,6 +141,8 @@ class public PDFA
         
         
         doc!.save(new File(out$))    
+        doc!.close()
+        
         methodret
         
         
