@@ -3,7 +3,7 @@ REM see https://www.mustangproject.org/
 REM and http://github.com/zuGFeRD/mustangproject
 REM 
 REM You need at least the following files in your classpath to run it:
-REM mustang-1.5.1.jar
+REM mustang-2.0.3.jar
 REM jaxb-api-2.3.0.jar
 REM activation-1.1.1.jar 
 
@@ -13,23 +13,110 @@ use java.util.Calendar
 use java.util.Date
 use java.util.GregorianCalendar
 use java.lang.reflect.Array
+use java.util.ArrayList
 
 use org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge
 use org.mustangproject.ZUGFeRD.IZUGFeRDExportableContact
 use org.mustangproject.ZUGFeRD.IZUGFeRDExportableItem
 use org.mustangproject.ZUGFeRD.IZUGFeRDExportableProduct
-use org.mustangproject.ZUGFeRD.IZUGFeRDExportableTransaction
+use org.mustangproject.ZUGFeRD.IExportableTransaction
 use org.mustangproject.ZUGFeRD.ZUGFeRDExporter
-use org.mustangproject.ZUGFeRD.ZUGFeRDExporterFromA1Factory
+use org.mustangproject.ZUGFeRD.ZUGFeRDExporterFromA1
+use org.mustangproject.ZUGFeRD.Profile
+use org.mustangproject.Invoice
+use org.mustangproject.FileAttachment
+use org.mustangproject.ZUGFeRD.IZUGFeRDExportableTradeParty 
+use org.mustangproject.ZUGFeRD.IZUGFeRDPaymentTerms
+use org.mustangproject.ZUGFeRD.IZUGFeRDPaymentDiscountTerms
+use org.mustangproject.ZUGFeRD.IZUGFeRDTradeSettlementPayment
+use org.mustangproject.ZUGFeRD.IZUGFeRDTradeSettlement
+use org.mustangproject.ZUGFeRD.IAbsoluteValueProvider 
+
+use org.mustangproject.ZUGFeRD.model.DocumentCodeTypeConstants
+
+class public PaymentTerms implements IZUGFeRDPaymentTerms 
+
+    field private String description!
+    field private Date dueDate!
+    field private IZUGFeRDPaymentDiscountTerms discountTerms!
+    
+    method private String getDescription()
+        methodret #description!
+    methodend
+    
+    method private void setDescription(String description!)
+        #description! = description!
+    methodend
+    
+    method private Date getDueDate()
+        methodret #dueDate!
+    methodend
+    
+    method private void setDueDate(Date dueDate!)
+        #dueDate! = dueDate!
+    methodend
+    
+    method private IZUGFeRDPaymentDiscountTerms getDiscountTerms()
+        methodret #discountTerms!
+    methodend
+    
+    method private void setDiscountTerms(IZUGFeRDPaymentDiscountTerms discountTerms!)
+        #discountTerms! = discountTerms!
+    methodend
+
+classend
+
+class public PaymentDiscountTerms  implements IZUGFeRDPaymentDiscountTerms 
+
+    field private BigDecimal calculationPercentage!
+    field private Date baseDate!
+    field private int basePeriodMeasure!
+    field private String basePeriodUnitCode!
+
+    method private Date getCalculationPercentage()
+        methodret #calculationPercentage!
+    methodend
+    
+    method private void setCalculationPercentage(Date calculationPercentage!)
+        #calculationPercentage! = calculationPercentage!
+    methodend
+    
+    method private Date getBaseDate()
+        methodret #baseDate!
+    methodend
+    
+    method private void setBaseDate(Date baseDate!)
+        #baseDate! = baseDate!
+    methodend
+    
+    method private Date getBasePeriodMeasure()
+        methodret #basePeriodMeasure!
+    methodend
+    
+    method private void setBasePeriodMeasure(Date basePeriodMeasure!)
+        #basePeriodMeasure! = basePeriodMeasure!
+    methodend
+    
+    method private Date getBasePeriodUnitCode()
+        methodret #basePeriodUnitCode!
+    methodend
+    
+    method private void setBasePeriodUnitCode(Date basePeriodUnitCode!)
+        #basePeriodUnitCode! = basePeriodUnitCode!
+    methodend
+    
+classend
 
 class public Contact implements IZUGFeRDExportableContact 
 
-    field private String country!
-    field private String location!
     field private String name!
-    field private String street!
-    field private String vatID!
+    field private String phone!
+    field private String email!
     field private String zip!
+    field private String street!
+    field private String location!
+    field private String country!
+    field private String fax!
 
     method public String getCountry() 
         methodret #country!
@@ -54,6 +141,30 @@ class public Contact implements IZUGFeRDExportableContact
     method public void setName(String name!)
         #name! = name!
     methodend
+    
+    method public String getPhone() 
+        methodret #phone!
+    methodend
+    
+    method public void setPhone(String phone!)
+        #phone! = phone!
+    methodend
+    
+    method public String getEMail() 
+        methodret #email!
+    methodend
+    
+    method public void setEMail(String email!)
+        #email! = email!
+    methodend
+    
+    method public String getFax() 
+        methodret #fax!
+    methodend
+    
+    method public void setFax(String fax!)
+        #fax! = fax!
+    methodend
 
     method public String getStreet() 
         methodret #street!
@@ -61,14 +172,6 @@ class public Contact implements IZUGFeRDExportableContact
     
     method public void setStreet(String street!)
         #street! = street!
-    methodend
-
-    method public String getVATID() 
-        methodret #vatID!
-    methodend
-    
-    method public void setVATID(String vatID!)
-        #vatID! = vatID!
     methodend
 
     method public String getZIP() 
@@ -80,14 +183,136 @@ class public Contact implements IZUGFeRDExportableContact
     methodend
 classend
 
+class public TradeParty implements IZUGFeRDExportableTradeParty 
+    
+    field private String id!
+    field private String name!
+    field private String zip!
+    field private String street!
+    field private String location!
+    field private String country!
+    field private String taxID!
+    field private String vatID!
+    field private String additionalAddress!
+    field private java.util.ArrayList bankDetails!
+    field private Contact contact!
+    
+    method public TradeParty()
+        #bankDetails! = new java.util.ArrayList()
+    methodend
+    
+    method public String getID()
+        methodret #id!
+    methodend
+    
+    method public void setID(String id!)
+        #id! = id!
+    methodend
+    
+    method public String getName()
+        methodret #name!
+    methodend
+    
+    method public void setName(String name!)
+        #name! = name!
+    methodend
+    
+    method public String getZIP()
+        methodret #zip!
+    methodend
+    
+    method public void setZIP(String zip!)
+        #zip! = zip!
+    methodend
+    
+    method public String getStreet()
+        methodret #street!
+    methodend
+    
+    method public void setStreet(String street!)
+        #street! = street!
+    methodend
+    
+    method public String getLocation()
+        methodret #location!
+    methodend
+    
+    method public void setLocation(String location!)
+        #location! = location!
+    methodend
+    
+    method public String getCountry()
+        methodret #country!
+    methodend
+    
+    method public void setCountry(String country!)
+        #country! = country!
+    methodend
+    
+    method public String getTaxID()
+        methodret #taxID!
+    methodend
+    
+    method public void setTaxID(String taxID!)
+        #taxID! = taxID!
+    methodend
+    
+    method public String getVatID()
+        methodret #vatID!
+    methodend
+    
+    method public void setVatID(String vatID!)
+        #vatID! = vatID!
+    methodend
+    
+    method public Contact getContact()
+        methodret #contact!
+    methodend
+    
+    method public void setContact(Contact contact!)
+        #contact! = contact!
+    methodend
+    
+    method public String getAdditionalAddress()
+        methodret #additionalAddress!
+    methodend
+    
+    method public void setAdditionalAddress(String additionalAddress!)
+        #additionalAddress! = additionalAddress!
+    methodend
+    
+    method public void addBankDetails(BankDetails bankDetails!)
+        #bankDetails!.add(bankDetails!)
+    methodend
+    
+    method public ArrayList getBankDetails()
+        methodret #bankDetails!
+    methodend
+    
+    method public IZUGFeRDTradeSettlement[] getAsTradeSettlement()
+        if (#bankDetails!.size() = 0) then
+            methodret null()
+        endif
+        methodret cast(IZUGFeRDTradeSettlement[], #bankDetails!.toArray(new IZUGFeRDTradeSettlement[0]))
+    methodend
+    
+classend
+
 
 class public Item implements IZUGFeRDExportableItem 
 
-    field private BigDecimal price!
-    field private BigDecimal quantity!
-    field private Product product!
-    field private IZUGFeRDAllowanceCharge[] itemAllowances!
-    field private IZUGFeRDAllowanceCharge[] itemCharges!
+    field private BigDecimal price! = null()
+    field private BigDecimal quantity! = null()
+    field private BigDecimal tax! = null()
+    field private BigDecimal grossPrice! = null()
+    field private BigDecimal lineTotalAmount! = null()
+    field private Date detailedDeliveryPeriodFrom! = null()
+    field private Date detailedDeliveryPeriodTo! = null()
+    field private String id! = null()
+    field private Product product! = null()
+    field private java.util.ArrayList notes! = new ArrayList()
+    field private java.util.ArrayList allowances! = new ArrayList()
+    field private java.util.ArrayList charges! = new ArrayList()
 
     method public Item(BigDecimal price!, BigDecimal quantity!, Product product!) 
         #price! = price!
@@ -95,12 +320,36 @@ class public Item implements IZUGFeRDExportableItem
         #product! = product!
     methodend
     
-    method public Item(BigDecimal price!, BigDecimal quantity!, Product product!, IZUGFeRDAllowanceCharge[] itemAllowances!, IZUGFeRDAllowanceCharge[] itemCharges!) 
-        #price! = price!
-        #quantity! = quantity!
-        #product! = product!
-        #itemAllowances! = itemAllowances!
-        #itemCharges! = itemCharges!
+    method public BigDecimal getLineTotalAmount() 
+        methodret #lineTotalAmount!
+    methodend
+
+    method public void setLineTotalAmount(BigDecimal lineTotalAmount!) 
+        #lineTotalAmount! = lineTotalAmount!
+    methodend
+    
+    method public BigDecimal getGrossPrice() 
+        methodret #grossPrice!
+    methodend
+
+    method public void setGrossPrice(BigDecimal grossPrice!) 
+        #grossPrice! = grossPrice!
+    methodend
+    
+    method public BigDecimal getTax() 
+        methodret #tax!
+    methodend
+
+    method public void setTax(BigDecimal tax!) 
+        #tax! = tax!
+    methodend
+    
+    method public String getID() 
+        methodret #id!
+    methodend
+
+    method public void setID(String id!) 
+        #id! = id!
     methodend
 
     method public BigDecimal getPrice() 
@@ -128,19 +377,49 @@ class public Item implements IZUGFeRDExportableItem
     methodend
 
     method public IZUGFeRDAllowanceCharge[] getItemAllowances() 
-        methodret #itemAllowances!
+        if (#allowances!.isEmpty()) then
+            methodret null()
+        endif
+        methodret cast(IZUGFeRDAllowanceCharge[], #allowances!.toArray(new IZUGFeRDAllowanceCharge[0]))
     methodend
     
-    method public void setItemAllowances(IZUGFeRDAllowanceCharge[] itemAllowances!)
-        #itemAllowances! = itemAllowances!
+    method public void addAllowance(IZUGFeRDAllowanceCharge allowance!)
+        #allowances!.add(allowance!) 
     methodend
 
     method public IZUGFeRDAllowanceCharge[] getItemCharges() 
-        methodret #itemCharges!
+        if (#charges!.isEmpty()) then
+            methodret null()
+        endif
+        methodret cast(IZUGFeRDAllowanceCharge[], #charges!.toArray(new IZUGFeRDAllowanceCharge[0]))
     methodend
 
-    method public void setItemCharges(IZUGFeRDAllowanceCharge[] itemCharges!)
-        #itemCharges! = itemCharges!
+    method public void addCharge(IZUGFeRDAllowanceCharge charge!)
+        #charges!.add(charge!)
+    methodend
+    
+    method public void addNote(String note!)
+        #notes!.add(note!)
+    methodend
+    
+    method public String[] getNotes()
+        if (#notes! = null()) then
+            methodret null()
+        endif
+        methodret cast(String[], #notes!.toArray(new String[0]))
+    methodend
+    
+    method public void setDetailedDeliveryPeriod(Date from!, Date to!)
+        #detailedDeliveryPeriodFrom! = from!
+        #detailedDeliveryPeriodTo! = to!
+    methodend
+    
+    method public Date getDetailedDeliveryPeriodFrom()
+        methodret #detailedDeliveryPeriodFrom!
+    methodend
+    
+    method public Date getDetailedDeliveryPeriodTo()
+        methodret #detailedDeliveryPeriodTo!
     methodend
 
 classend
@@ -150,7 +429,11 @@ class public Product implements IZUGFeRDExportableProduct
     field private String description!
     field private String name!
     field private String unit!
+    field private String sellerAssignedID!
+    field private String buyerAssignedID!
     field private BigDecimal VATPercent!
+    field private boolean isReverseCharge! = Boolean.FALSE
+    field private boolean isIntraCommunitySupply! = Boolean.FALSE
 
     method public Product(String description!, String name!, String unit!, BigDecimal vATPercent!) 
         #description! = description!
@@ -158,7 +441,41 @@ class public Product implements IZUGFeRDExportableProduct
         #unit! = unit!
         #VATPercent! = vATPercent!
     methodend
+    
+    method public String getSellerAssignedID() 
+        methodret #sellerAssignedID!
+    methodend
 
+    method public void setSellerAssignedID(String sellerAssignedID!) 
+        #sellerAssignedID! = sellerAssignedID!
+    methodend
+    
+    method public String getBuyerAssignedID() 
+        methodret #buyerAssignedID!
+    methodend
+
+    method public void setBuyerAssignedID(String buyerAssignedID!) 
+        #buyerAssignedID! = buyerAssignedID!
+    methodend
+    
+    method public boolean isReverseCharge()
+        methodret #isReverseCharge!
+    methodend
+    
+    method public boolean isIntraCommunitySupply()
+        methodret #isIntraCommunitySupply!
+    methodend
+    
+    method public void setReverseCharge()
+        #isReverseCharge! = Boolean.TRUE
+        #setVATPercent(BigDecimal.ZERO)
+    methodend 
+
+    method public void setIntraCommunitySupply()
+        #isIntraCommunitySupply! = Boolean.TRUE
+        #setVATPercent(BigDecimal.ZERO)
+    methodend
+    
     method public String getDescription() 
         methodret #description!
     methodend
@@ -193,223 +510,474 @@ class public Product implements IZUGFeRDExportableProduct
 
 classend
 
-class public MustangXWriter implements IZUGFeRDExportableTransaction 
+class public MustangXWriter implements IExportableTransaction 
 
-    field private String currency!
-    field private Date deliveryDate!
-    field private Date dueDate!
-    field private Date issueDate!
-    field private String number!
-    field private String ownBIC!
-    field private String ownBankName!
-    field private String ownCountry!
-    field private String ownIBAN!
-    field private String ownLocation!
-    field private String ownOrganisationFullPlaintextInfo!
-    field private String ownOrganisationName!
-    field private String ownPaymentInfoText!
-    field private String ownStreet!
-    field private String ownTaxID!
-    field private String ownVATID!
-    field private String ownZIP!
-    field private String paymentTermDescription!
-    field private IZUGFeRDExportableContact contact!
-    field private String referenceNumber!
-    field private IZUGFeRDExportableItem[] zfItems!
-    field private IZUGFeRDAllowanceCharge[] zfLogisticsServiceCharges!
-    field private IZUGFeRDAllowanceCharge[] zfCharges!
-    field private IZUGFeRDAllowanceCharge[] zfAllowances!
+    field private String documentName! = null()
+    field private String documentCode! = null()
+    field private String shipToOrganisationID! = null()
+    field private String shipToOrganisationName! = null()
+    field private String shipToStreet! = null()
+    field private String shipToZIP! = null()
+    field private String shipToLocation! = null()
+    field private String shipToCountry! = null()
+    field private String buyerOrderReferencedDocumentID! = null()
+    field private String buyerOrderReferencedDocumentIssueDateTime! = null()
+    field private String ownForeignOrganisationID! = null()
+    field private String ownOrganisationName! = null()
+    field private String currency! = null()
+    field private String paymentTermDescription! = null()
+    field private String number! = null()
+    field private Date issueDate! = null()
+    field private Date dueDate! = null()
+    field private Date deliveryDate! = null()
+    field private Date detailedDeliveryDateStart! = null()
+    field private Date detailedDeliveryPeriodEnd! = null()
+    field private String ownOrganisationFullPlaintextInfo! = null()
+    field private java.util.ArrayList allowances! = new ArrayList()
+    field private java.util.ArrayList charges! = new ArrayList()
+    field private java.util.ArrayList logisticsServiceCharges! = new ArrayList()
+    field private java.util.ArrayList zfItems! = null()
+    field private java.util.ArrayList notes! = null()
+    field private java.util.ArrayList xmlEmbeddedFiles! = null()
+    field private String contractReferencedDocument! = null()
+REM     field private IZUGFeRDTradeSettlementPayment[] settlementPayments! = null()
+    field private String ownTaxID! = null()
+    field private String ownVATID! = null()
+    field private String ownStreet! = null()
+    field private String ownZIP! = null()
+    field private String ownLocation! = null()
+    field private String ownCountry! = null()
+    field private String referenceNumber! = null()
+    field private Profile profile! = null()
+    field private BigDecimal totalPrepaidAmount! = null()
+    field private TradeParty sender! = null()
+    field private TradeParty recipient! = null()
+    field private TradeParty deliveryAddress! = null()
+    field private IZUGFeRDPaymentTerms paymentTerms! = null()
+    
+    method public MustangXWriter()
+        #zfItems! = new java.util.ArrayList()
+        #setCurrency("EUR")
+    methodend
+        
+    method public String getDocumentName()
+        methodret #documentName!
+    methodend
+    
+    method public void setDocumentName(String documentName!)
+        #documentName! = documentName!
+    methodend
+    
+    method public String getBuyerOrderReferencedDocumentID()
+        methodret #buyerOrderReferencedDocumentID!
+    methodend
+    
+    method public void setBuyerOrderReferencedDocumentID(BBjString buyerOrderReferencedDocumentID!)
+        #buyerOrderReferencedDocumentID! = buyerOrderReferencedDocumentID!
+    methodend
+
+    method public String getContractReferencedDocument()
+        methodret contractReferencedDocument!
+    methodend
+    
+    method public String getDocumentCode()
+        methodret #documentCode!
+    methodend
+    
+    method public void setDocumentCode(String documentCode!)
+        #documentCode! = documentCode!
+    methodend
 
     method public String getCurrency() 
         methodret #currency!
     methodend
     
-    method public String setCurrency(String currency!)
-        #currency! = currency!
-    methodend
-
-    method public Date getDeliveryDate() 
-        methodret #deliveryDate!
+    method public TradeParty getRecipient() 
+        methodret #recipient!
     methodend
     
-    method public void setDeliveryDate(Date date!)
-        #deliveryDate! = date!
-    methodend
-
-    method public Date getDueDate() 
-        methodret #dueDate!
+    method public TradeParty getDeliveryAddress() 
+        methodret #deliveryAddress!
     methodend
     
-    method public void setDueDate(Date date!)
-        #dueDate! = date!
+    method public void setDeliveryAddress(TradeParty deliveryAddress!)
+        #deliveryAddress! = deliveryAddress!
     methodend
 
-    method public Date getIssueDate() 
-        methodret #issueDate!
-    methodend
-    
-    method public void setIssueDate(Date date!)
-        #issueDate! = date!
+    method public void embedFileInXML(FileAttachment fa!)
+        if (#xmlEmbeddedFiles! = null()) then
+            #xmlEmbeddedFiles! = new ArrayList()
+        endif
+        #xmlEmbeddedFiles!.add(fa!)
     methodend
 
-    method public String getNumber() 
+    method public FileAttachment[] getAdditionalReferencedDocuments()
+        if (#xmlEmbeddedFiles! = null()) then
+            methodret null()
+        endif
+        methodret cast(FileAttachment[], #xmlEmbeddedFiles!.toArray(new FileAttachment[0]))
+    methodend
+
+    method public String getNumber()
         methodret #number!
     methodend
-    
+
     method public void setNumber(String number!)
         #number! = number!
     methodend
 
-    method public String getOwnBIC() 
-        methodret #ownBIC!
+     rem switch type to invoice correction and refer to document number.
+     rem Please note that the quantities need to be negative, if you
+     rem e.g. delivered 100 and take 50 back the quantity should be -50 in the
+     rem corrected invoice, which will result in negative VAT and a negative payment amount
+     rem @param number the invoice number to be corrected
+     rem @return this object (fluent setter)
+    method public void setCorrection(String number!)
+        #setBuyerOrderReferencedDocumentID(number!)
+        #documentCode! = DocumentCodeTypeConstants.CORRECTEDINVOICE
     methodend
     
-    method public void setOwnBIC(String ownBIC!)
-        #ownBIC! = ownBIC!
+    method public void setCreditNote() 
+        #documentCode! = DocumentCodeTypeConstants.CREDITNOTE
     methodend
 
-    method public String getOwnBankName() 
-        methodret #ownBankName!
-    methodend
-    
-    method public void setOwnBankName(String ownBankName!)
-        #ownBankName! = ownBankName!
-    methodend
-
-    method public String getOwnCountry() 
-        methodret #ownCountry!
-    methodend
-    
-    method public void setOwnCountry(String ownCountry!)
-        #ownCountry! = ownCountry!
-    methodend
-
-    method public String getOwnIBAN() 
-        methodret #ownIBAN!
-    methodend
-    
-    method public void setOwnIBAN(String ownIBAN!)
-        #ownIBAN! = ownIBAN!
-    methodend
-
-    method public String getOwnLocation() 
-        methodret #ownLocation!
-    methodend
-    
-    method public void setOwnLocation(String ownLocation!)
-        #ownLocation! = ownLocation!
-    methodend
-
-    method public String getOwnOrganisationFullPlaintextInfo() 
+    method public String getOwnOrganisationFullPlaintextInfo()
         methodret #ownOrganisationFullPlaintextInfo!
     methodend
-    
-    method public void setOwnOrganisationFullPlaintextInfo(String info!)
-        #ownOrganisationFullPlaintextInfo! = info!
+
+    method public void setOwnOrganisationFullPlaintextInfo(String ownOrganisationFullPlaintextInfo!) 
+        #ownOrganisationFullPlaintextInfo! = ownOrganisationFullPlaintextInfo!
     methodend
 
-    method public String getOwnOrganisationName() 
-        methodret #ownOrganisationName!
-    methodend
-    
-    method public void setOwnOrganisationName(String name!)
-        #ownOrganisationName! = name!
+    method public String getReferenceNumber()
+        methodret #referenceNumber!
     methodend
 
-    method public String getOwnPaymentInfoText() 
-        methodret #ownPaymentInfoText!
-    methodend
-    
-    method public void setOwnPaymentInfoText(String ownPaymentInfoText!)
-        #ownPaymentInfoText! = ownPaymentInfoText!
+    method public void setReferenceNumber(String referenceNumber!) 
+        #referenceNumber! = referenceNumber!
     methodend
 
-    method public String getOwnStreet() 
-        methodret #ownStreet!
+    method public String getShipToOrganisationID()
+        methodret shipToOrganisationID!
     methodend
-    
-    method public void setOwnStreet(String ownStreet!)
-        #ownStreet! = ownStreet!
+
+    method public void setShipToOrganisationID(String shipToOrganisationID!)
+        #shipToOrganisationID! = shipToOrganisationID!
+    methodend
+
+    method public String getShipToOrganisationName()
+        methodret #shipToOrganisationName!
+    methodend
+
+    method public void setShipToOrganisationName(String shipToOrganisationName!) 
+        #shipToOrganisationName! = shipToOrganisationName!
+    methodend
+
+    method public String getShipToStreet()
+        methodret #shipToStreet!
+    methodend
+
+    method public void setShipToStreet(String shipToStreet!)
+        #shipToStreet! = shipToStreet!
+    methodend
+
+    method public String getShipToZIP()
+        methodret #shipToZIP!
+    methodend
+
+    method public void setShipToZIP(String shipToZIP!) 
+        #shipToZIP! = shipToZIP!
+    methodend
+
+    method public String getShipToLocation()
+        methodret #shipToLocation!
+    methodend
+
+    method public void setShipToLocation(String shipToLocation!)
+        #shipToLocation = shipToLocation!
+    methodend
+
+    method public String getShipToCountry()
+        methodret #shipToCountry!
+    methodend
+
+    method public void setShipToCountry(String shipToCountry!) 
+        #shipToCountry! = shipToCountry!
+    methodend
+
+     rem usually the order number or in case of a correction the original invoice number
+     rem @param buyerOrderReferencedDocumentID string with number
+     rem @return fluent setter
+    method public void setBuyerOrderReferencedDocumentID(String buyerOrderReferencedDocumentID!)
+        #buyerOrderReferencedDocumentID! = buyerOrderReferencedDocumentID!
+    methodend
+
+    method public String getBuyerOrderReferencedDocumentIssueDateTime()
+        methodret #buyerOrderReferencedDocumentIssueDateTime!
+    methodend
+
+     rem when the order (or whatever reference in BuyerOrderReferencedDocumentID) was issued (@todo switch to date?)
+     rem @param buyerOrderReferencedDocumentIssueDateTime  IssueDateTime in format CCYY-MM-DDTHH:MM:SS
+     rem @return fluent setter
+    method public void setBuyerOrderReferencedDocumentIssueDateTime(String buyerOrderReferencedDocumentIssueDateTime!) 
+        #buyerOrderReferencedDocumentIssueDateTime! = buyerOrderReferencedDocumentIssueDateTime!
     methodend
 
     method public String getOwnTaxID() 
-        methodret #ownTaxID!
+        methodret #getSender().getTaxID()
     methodend
-    
-    method public void setOwnTaxID(String ownTaxID!)
-        #ownTaxID! = ownTaxID!
+
+     rem @deprecated use TradeParty::addTaxID instead
+     rem @see TradeParty
+    method public void setOwnTaxID(String ownTaxID!) 
+        #sender!.setTaxID(ownTaxID!)
     methodend
 
     method public String getOwnVATID() 
-        methodret #ownVATID!
-    methodend
-    
-    method public void setOwnVATID(String ownVATID!)
-        #ownVATID! = ownVATID!
+        methodret #getSender().getVatID()
     methodend
 
-    method public String getOwnZIP() 
-        methodret #ownZIP!
+     rem @deprecated use TradeParty::addVATID instead
+     rem @see TradeParty
+    method public void setOwnVATID(String ownVATID!) 
+        #sender!.setVatID(ownVATID!)
     methodend
-    
-    method public void setOwnZIP(String ownZIP!)
-        #ownZIP! = ownZIP!
+
+    method public String getOwnForeignOrganisationID()
+        methodret #ownForeignOrganisationID!
+    methodend
+
+     rem @deprecated use TradeParty instead
+     rem @see TradeParty
+    method public void setOwnForeignOrganisationID(String ownForeignOrganisationID!)
+        #ownForeignOrganisationID! = ownForeignOrganisationID!
+    methodend
+
+    method public String getOwnOrganisationName()
+        methodret #ownOrganisationName!
+    methodend
+
+     rem @deprecated use senders' TradeParty's name instead
+     rem @see TradeParty
+    method public void setOwnOrganisationName(String ownOrganisationName!) 
+        #ownOrganisationName! = ownOrganisationName!
+    methodend
+
+    method public String getOwnStreet() 
+        methodret #sender!.getStreet()
+    methodend
+
+    method public String getOwnZIP()
+        methodret #sender!.getZIP()
+    methodend
+
+    method public String getOwnLocation() 
+        methodret #sender!.getLocation()
+    methodend
+
+    method public String getOwnCountry() 
+        methodret #sender!.getCountry()
+    methodend
+
+    method public String[] getNotes()
+        if (#notes! = null()) then
+            methodret null()
+        endif
+        methodret cast(String[], #notes!.toArray(new String[0]))
+    methodend
+
+    method public void setCurrency(String currency!) 
+        #currency! = currency!
     methodend
 
     method public String getPaymentTermDescription() 
         methodret #paymentTermDescription!
     methodend
-    
+
     method public void setPaymentTermDescription(String paymentTermDescription!)
         #paymentTermDescription! = paymentTermDescription!
     methodend
-    
-    method public IZUGFeRDExportableContact getRecipient() 
-        methodret #contact!
-    methodend
-    
-    method public void setRecipient(IZUGFeRDExportableContact contact!)
-        #contact! = contact!
+
+    method public Date getIssueDate()
+        methodret #issueDate!
     methodend
 
-    method public String getReferenceNumber() 
-        methodret #referenceNumber!
+    method public void setIssueDate(Date issueDate!) 
+        #issueDate! = issueDate!
     methodend
-    
-    method public void setReferenceNumber(String referenceNumber!)
-        #referenceNumber! = referenceNumber!
+
+    method public Date getDueDate()
+        methodret #dueDate!
+    methodend
+
+    method public void setDueDate(Date dueDate!) 
+        #dueDate! = dueDate!
+    methodend
+
+    method public Date getDeliveryDate() 
+        methodret #deliveryDate!
+    methodend
+
+    method public void setDeliveryDate(Date deliveryDate!)
+        #deliveryDate! = deliveryDate!
+    methodend
+
+    method public BigDecimal getTotalPrepaidAmount()
+        methodret #totalPrepaidAmount!
+    methodend
+
+    method public void setTotalPrepaidAmount(BigDecimal totalPrepaidAmount!) 
+        #totalPrepaidAmount! = totalPrepaidAmount!
+    methodend
+
+    method public IZUGFeRDExportableTradeParty getSender()
+        methodret #sender!
+    methodend
+
+     rem sets a named sender contact
+     rem @deprecated use setSender
+     rem @see Contact
+     rem @param ownContact the sender contact
+     rem @return fluent setter
+    method public void setOwnContact(Contact ownContact!)
+        #sender!.setContact(ownContact!)
+    methodend
+
+    method public IZUGFeRDExportableTradeParty getRecipient() 
+        methodret #recipient!
+    methodend
+
+     rem required.
+     rem sets the invoice receiving institution = invoicee
+     rem @param recipient the invoicee organisation
+     rem @return fluent setter
+    method public void setRecipient(TradeParty recipient!)
+        #recipient! = recipient!
+    methodend
+
+     rem required.
+     rem sets the invoicing institution = invoicer
+     rem @param sender the invoicer
+     rem @return fluent setter
+    method public void setSender(TradeParty sender!)
+        #sender! = sender!
+REM         if ((sender.getBankDetails() != null) && (sender.getBankDetails().size() > 0)) {
+            rem convert bankdetails
+REM         }
     methodend
 
     method public IZUGFeRDAllowanceCharge[] getZFAllowances() 
-        methodret #zfAllowances!
-    methodend
-    
-    method public void setZFAllowances(IZUGFeRDAllowanceCharge[] zfAllowances!)
-        #zfAllowances! = zfAllowances!
+        if (#allowances!.isEmpty()) then
+            methodret null()
+        endif
+        methodret cast(IZUGFeRDAllowanceCharge[], #allowances!.toArray(new IZUGFeRDAllowanceCharge[0]))
     methodend
 
     method public IZUGFeRDAllowanceCharge[] getZFCharges() 
-        methodret #zfCharges!
+        if (#charges!.isEmpty()) then
+            methodret null()
+        endif
+        methodret cast(IZUGFeRDAllowanceCharge[], #charges!.toArray(new IZUGFeRDAllowanceCharge[0]))
+    methodend
+
+    method public IZUGFeRDAllowanceCharge[] getZFLogisticsServiceCharges()
+        if (#logisticsServiceCharges!.isEmpty()) then
+            methodret null()
+        endif
+        methodret cast(IZUGFeRDAllowanceCharge[], #logisticsServiceCharges!.toArray(new IZUGFeRDAllowanceCharge[0]))
     methodend
     
-    method public void setZFCharges(IZUGFeRDAllowanceCharge[] zfCharges!)
-        #zfCharges! = zfCharges!
+    method public IZUGFeRDTradeSettlement[] getTradeSettlement()
+        if (#getSender() = null()) then
+            methodret null()
+        endif
+        methodret cast(IZUGFeRDTradeSettlement[], cast(TradeParty, #getSender()).getAsTradeSettlement())
     methodend
+
+    method public IZUGFeRDPaymentTerms getPaymentTerms()
+        methodret #paymentTerms!
+    methodend
+
+    method public void setPaymentTerms(IZUGFeRDPaymentTerms paymentTerms!)
+        #paymentTerms! = paymentTerms!
+    methodend
+
 
     method public IZUGFeRDExportableItem[] getZFItems() 
-        methodret #zfItems!
-    methodend
-    
-    method public void setZFItems(IZUGFeRDExportableItem[] zfItems!)
-        #zfItems! = zfItems!
+        methodret cast(IZUGFeRDExportableItem[], #zfItems!.toArray(new IZUGFeRDExportableItem[0]))
     methodend
 
-    method public IZUGFeRDAllowanceCharge[] getZFLogisticsServiceCharges() 
-        methodret #zfLogisticsServiceCharges!
+     rem required
+     rem adds invoice "lines" :-)
+     rem @see Item
+     rem @param item the invoice line
+     rem @return fluent setter
+    method public void addItem(IZUGFeRDExportableItem item!) 
+        #zfItems!.add(item!)
+    methodend
+
+
+     rem checks if all required items are set in order to be able to export it
+     rem @return true if all required items are set
+    method public boolean isValid() 
+        methodret (#dueDate! <> null()) and (#sender! <> null()) and (#sender!.getTaxID() <> null()) and (#sender!.getVatID() <> null()) and (#recipient! <> null())
+    methodend
+
+     rem adds a document level addition to the price
+     rem @see Charge
+     rem @param izac the charge to be applied
+     rem @return fluent setter
+    method public void addCharge(IZUGFeRDAllowanceCharge izac!) 
+        #charges!.add(izac!)
     methodend
     
-    method public void setZFLogisticsServiceCharges(IZUGFeRDAllowanceCharge[] zfLogisticsServiceCharges!)
-        #zfLogisticsServiceCharges! = zfLogisticsServiceCharges!
+    method public void addZFLogisticsServiceCharge(IZUGFeRDAllowanceCharge izac!)
+        #logisticsServiceCharges!.add(izac!)
+    methodend
+    
+     rem adds a document level rebate
+     rem @see Allowance
+     rem @param izac the allowance to be applied
+     rem @return fluent setter
+    method public void addAllowance(IZUGFeRDAllowanceCharge izac!) 
+        #allowances!.add(izac!)
+    methodend
+
+     rem adds the ID of a contract referenced in the invoice
+     rem @param s the contract number
+     rem @return fluent setter
+    method public void setContractReferencedDocument(String s!) 
+        #contractReferencedDocument! = s!
+    methodend
+
+
+     rem sets a document level delivery period,
+     rem which is optional additional to the mandatory deliverydate
+     rem and which will become a BillingSpecifiedPeriod-Element
+     rem @param start the date of first delivery
+     rem @param end the date of last delivery
+     rem @return fluent setter
+    method public void setDetailedDeliveryPeriod(Date start!, Date end!) 
+        #detailedDeliveryDateStart! = start!
+        #detailedDeliveryPeriodEnd! = end!
+    methodend
+
+    method public Date getDetailedDeliveryPeriodFrom() 
+        methodret #detailedDeliveryDateStart!
+    methodend
+
+    method public Date getDetailedDeliveryPeriodTo() 
+        methodret #detailedDeliveryPeriodEnd!
+    methodend
+
+     rem adds a free text paragraph, which will become a includedNote element
+     rem @param text freeform UTF8 plain text
+     rem @return fluent setter
+    method public void addNote(String text!)
+        if (#notes! = null()) then
+            #notes! = new ArrayList()
+        endif
+        #notes!.add(text!)
     methodend
     
 classend
@@ -419,6 +987,7 @@ class public ZUGFeRDAllowanceCharge implements IZUGFeRDAllowanceCharge
     field private BigDecimal totalAmount!
     field private String reason!
     field private BigDecimal taxPercent!
+    field private Boolean isCharge! = Boolean.TRUE
     
     method public ZUGFeRDAllowanceCharge(BigDecimal totalAmount!, String reason!, BigDecimal taxPercent!)
         #totalAmount! = totalAmount!
@@ -426,7 +995,11 @@ class public ZUGFeRDAllowanceCharge implements IZUGFeRDAllowanceCharge
         #taxPercent! = taxPercent!
     methodend
     
-    method public BigDecimal getTotalAmount()
+    method public Boolean isCharge()
+        methodret #isCharge!
+    methodend
+    
+    method public BigDecimal getTotalAmount(IAbsoluteValueProvider currentItem!)
         methodret #totalAmount!
     methodend
     
@@ -452,75 +1025,180 @@ class public ZUGFeRDAllowanceCharge implements IZUGFeRDAllowanceCharge
 
 classend
 
-Class.forName("org.mustangproject.ZUGFeRD.ZUGFeRDExporter",err=classpath_err)
+class public BankDetails implements IZUGFeRDTradeSettlementPayment
+    
+    field private String IBAN!
+    field private String BIC!
+    field private String accountName! = null()
+    
+    method public BankDetails(String IBAN!, String BIC!)
+        #IBAN! = IBAN!
+        #BIC! = BIC!
+    methodend
+    
+    method public String getIBAN()
+        methodret #IBAN!
+    methodend
+    
+    method public String getOwnIBAN()
+        methodret #getIBAN()
+    methodend
+    
+    method public void setIBAN(String IBAN!)
+        #IBAN! = IBAN!
+    methodend
+    
+    method public String getBIC()
+        methodret #BIC!
+    methodend
+    
+    method public String getOwnBIC()
+        methodret #getBIC()
+    methodend
+    
+    method public void setBIC(String BIC!)
+        #BIC! = BIC!
+    methodend
+    
+    method public String getAccountName()
+        methodret #accountName!
+    methodend
+    
+    method public void setAccountName(String accountName!)
+        #accountName! = accountName!
+    methodend
+    
+classend
+
+Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDExporter",err=classpath_err)
 
 pdf$ = BBjAPI().getFileSystem().resolvePath("XInvoiceTools/zugferd/MustangGnuaccountingBeispielRE-20170509_505blanko.pdf")
 pdf_out$ = pdf$(1,len(pdf$)-10)+"out.pdf"
 
 mwr! = new MustangXWriter()
+
+tradeParty! = new TradeParty()
+tradeParty!.setID("1")
+tradeParty!.setName("Customer")
+tradeParty!.setZIP("66121")
+tradeParty!.setStreet("Mainzerstra�e 21")
+tradeParty!.setLocation("Saarbruecken")
+tradeParty!.setCountry("DE")
+tradeParty!.setTaxID("2222222222222")
+tradeParty!.setVatID("3333333333333")
+tradeParty!.setAdditionalAddress("-")
+
+bankDetails! = new BankDetails()
+bankDetails!.setIBAN("00000000")
+bankDetails!.setBIC("0000000")
+bankDetails!.setAccountName("BASIS Europe Bank")
+
+tradeParty!.addBankDetails(bankDetails!)
+
 contact! = new Contact()
+contact!.setPhone("+490681222222")
+contact!.setEMail("info@customer.com")
+REM contact!.setFax("-")
 contact!.setCountry("DE")
-contact!.setLocation("Spielkreis")
-contact!.setName("Theodor Est")
-contact!.setStreet("Bahnstr. 42")
-contact!.setVATID("DE999999999")
-contact!.setZIP("88802")
-mwr!.setRecipient(contact!)
+contact!.setLocation("Saarbruecken")
+contact!.setName("Customer")
+contact!.setStreet("Mainzerstra�e 21")
+contact!.setZIP("66121")
+
+tradeParty!.setContact(contact!)
+
+mwr!.setRecipient(tradeParty!)
+
+sender! = new TradeParty()
+sender!.setID("1")
+sender!.setName("BASIS Europe")
+sender!.setZIP("66115")
+sender!.setStreet("Nell-Breuning-Allee 6")
+sender!.setLocation("Saarbruecken")
+sender!.setCountry("DE")
+sender!.setTaxID("0000000000000")
+sender!.setVatID("1111111111111")
+sender!.setAdditionalAddress("-")
+
+contact! = new Contact()
+contact!.setPhone("+4906819681140")
+contact!.setEMail("info@basis-europe.com")
+REM contact!.setFax("-")
+contact!.setCountry("DE")
+contact!.setLocation("Saarbruecken")
+contact!.setName("BASIS Europe")
+contact!.setStreet("Nell-Breuning-Allee 6")
+contact!.setZIP("66115")
+
+sender!.setContact(contact!)
+
+mwr!.setSender(sender!)
+
+rem abweichende lieferadresse:
+
+deliveryAddress! = new TradeParty()
+deliveryAddress!.setID("1")
+deliveryAddress!.setName("BASIS Europe")
+deliveryAddress!.setZIP("66115")
+deliveryAddress!.setStreet("Nell-Breuning-Allee 6a")
+deliveryAddress!.setLocation("Saarbruecken")
+deliveryAddress!.setCountry("DE")
+deliveryAddress!.setTaxID("0000000000000")
+deliveryAddress!.setVatID("1111111111111")
+deliveryAddress!.setAdditionalAddress("-")
+
+contact! = new Contact()
+contact!.setPhone("+4906819681140")
+contact!.setEMail("info@basis-europe.com")
+REM contact!.setFax("-")
+contact!.setCountry("DE")
+contact!.setLocation("Saarbruecken")
+contact!.setName("BASIS Europe")
+contact!.setStreet("Nell-Breuning-Allee 6a")
+contact!.setZIP("66115")
+
+deliveryAddress!.setContact(contact!)
+
+mwr!.setDeliveryAddress(deliveryAddress!)
+
 mwr!.setDeliveryDate(new GregorianCalendar(2017, Calendar.NOVEMBER, 17).getTime())
 mwr!.setDueDate(new GregorianCalendar(2017, Calendar.DECEMBER, 9).getTime())
 mwr!.setIssueDate(new GregorianCalendar(2017, Calendar.NOVEMBER, 18).getTime())
 mwr!.setNumber("RE-20171118/506")
-mwr!.setOwnBIC("COBADEFFXXX")
-mwr!.setOwnBankName("Commerzbank")
-mwr!.setOwnCountry("DE")
-mwr!.setOwnIBAN("DE88 2008 0000 0970 3757 00")
-mwr!.setOwnLocation("Stadthausen")
-mwr!.setOwnOrganisationFullPlaintextInfo("Bei Spiel GmbH\n" + "Ecke 12\n" + "12345 Stadthausen\n" + "Geschäftsführer: Max Mustermann")
-mwr!.setOwnOrganisationName("Bei Spiel GmbH")
-mwr!.setOwnPaymentInfoText("/")
-mwr!.setOwnStreet("Ecke 12")
-mwr!.setOwnTaxID("22/815/0815/4")
-mwr!.setOwnVATID("DE136695976")
-mwr!.setOwnZIP("12345")
+mwr!.setOwnOrganisationFullPlaintextInfo("BASIS Europe\n" + "Nell-Breuning-Allee 6\n" + "66115 Saarbruecken")
+mwr!.setOwnOrganisationName("BASIS Europe")
+mwr!.setOwnTaxID("0000000000000")
+mwr!.setOwnVATID("1111111111111")
 mwr!.setPaymentTermDescription("/")
 mwr!.setReferenceNumber("000000")
+mwr!.setBuyerOrderReferencedDocumentID("101010101010101010") ; rem Leitweg ID
 
-
-allItems! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDExportableItem"),3) 
-
+rem Product(description, article name, unit code, VAT percent)
+rem unit code list: https://unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_rev3_Annex2e.pdf
 designProduct! = new Product("", "Künstlerische Gestaltung (Stunde): Einer Beispielrechnung", "HUR",new BigDecimal("7.000000"))
 balloonProduct! = new Product("", "Luftballon: Bunt, ca. 500ml", "C62", new BigDecimal("19.000000"))
 airProduct! = new Product("", "Heiße Luft pro Liter", "LTR", new BigDecimal("19.000000"))
 
-itemAllowances! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
-itemAllowances![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("1"), "ItemAllowance Reason", new BigDecimal("0"))
+mwr!.addAllowance(new ZUGFeRDAllowanceCharge(new BigDecimal("1"), "ItemAllowance Reason", new BigDecimal("0")))
 
-itemCharges! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
-itemCharges![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("1"), "ItemChargeReason", new BigDecimal("0"))
+mwr!.addCharge(new ZUGFeRDAllowanceCharge(new BigDecimal("1"), "ItemChargeReason", new BigDecimal("0")))
 
-allItems![0] = new Item(new BigDecimal("160"), new BigDecimal("1"), designProduct!, itemAllowances!, itemCharges!)
-allItems![1] = new Item(new BigDecimal("0.79"), new BigDecimal("400"), balloonProduct!, itemAllowances!, itemCharges!)
-allItems![2] = new Item(new BigDecimal("0.10"), new BigDecimal("200"), airProduct!, itemAllowances!, itemCharges!)
-mwr!.setZFItems(allItems!)
+mwr!.addItem(new Item(new BigDecimal("160"), new BigDecimal("1"), designProduct!))
+mwr!.addItem(new Item(new BigDecimal("0.79"), new BigDecimal("400"), balloonProduct!))
+mwr!.addItem(new Item(new BigDecimal("0.10"), new BigDecimal("200"), airProduct!))
 
-zfLogisticsServiceCharges! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
-zfLogisticsServiceCharges![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("5"), "Versand", new BigDecimal("0"))
-mwr!.setZFLogisticsServiceCharges(zfLogisticsServiceCharges!)
+mwr!.addZFLogisticsServiceCharge(new ZUGFeRDAllowanceCharge(new BigDecimal("5"), "Versand", new BigDecimal("0")))
 
-zfCharges! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
-zfCharges![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("1"), "zfCharges Reason", new BigDecimal("0"))
-mwr!.setZFCharges(zfCharges!)
+mwr!.addCharge(new ZUGFeRDAllowanceCharge(new BigDecimal("1"), "zfCharges Reason", new BigDecimal("0")))
 
-zfAllowances! = Array.newInstance(Class.forName("org.mustangproject.ZUGFeRD.IZUGFeRDAllowanceCharge"),1) 
-zfAllowances![0] = new ZUGFeRDAllowanceCharge(new BigDecimal("2"), "zfAllowances Reason", new BigDecimal("0"))
-mwr!.setZFAllowances(zfAllowances!)
+mwr!.addAllowance(new ZUGFeRDAllowanceCharge(new BigDecimal("2"), "zfAllowances Reason", new BigDecimal("0")))
 
 
-ze! = new ZUGFeRDExporterFromA1Factory().setProducer("BASIS BBj")
+ze! = new ZUGFeRDExporterFromA1().setProducer("BASIS BBj")
 :                    .setCreator(System.getProperty("user.name"))
 :                    .load(pdf$)
 
-ze!.PDFattachZugferdFile(mwr!)
+ze!.setTransaction(mwr!)
 ze!.export(pdf_out$)
 
 rem show the PDF (this only works on local machines - who wants to make this ThinClient-proof?)
